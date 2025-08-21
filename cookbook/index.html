@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receita dos Rossetti</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .recipe-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .recipe-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .modal {
+            backdrop-filter: blur(5px);
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-orange-50 to-red-50 min-h-screen">
+
+    
+    <!-- Header -->
+    <header class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-6">
+            <h1 class="text-4xl font-bold text-gray-800 text-center mb-6">Receita dos Rossetti 🧑‍🍳</h1>
+            
+            <!-- Search Bar -->
+            <div class="max-w-md mx-auto">
+                <div class="relative">
+                    <input 
+                        type="text" 
+                        id="searchInput"
+                        placeholder="Busque por receitas... (ex: brownie, bolo, etc.)"
+                        class="w-full px-4 py-3 pl-12 border-2 border-orange-200 rounded-full focus:border-orange-400 focus:outline-none text-gray-700"
+                    >
+                    <div class="absolute left-4 top-1/2 transform -translate-y-1/2">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <div id="recipesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Recipes will be inserted here -->
+        </div>
+        
+        <!-- No results message -->
+        <div id="noResults" class="hidden text-center py-12">
+            <div class="text-6xl mb-4">🔍</div>
+            <h3 class="text-2xl font-semibold text-gray-600 mb-2">Nenhuma receita encontrada</h3>
+            <p class="text-gray-500">Tente buscar com outras palavras-chave</p>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white text-center py-4 mt-12">
+        <p class="text-sm cursor-pointer hover:text-orange-300 transition-colors" onclick="window.open('https://instagram.com/perelequis', '_blank')">
+            © <span id="currentYear"></span> Perelequis - Todos os direitos reservados
+        </p>
+    </footer>
+
+    <!-- Modal Overlay -->
+    <div id="modalOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 modal z-50 flex items-center justify-center p-4">
+        <div id="modalContent" class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto fade-in">
+            <!-- Modal content will be inserted here -->
+        </div>
+    </div>
+
+    <script>
+        // Recipe data
+        const recipes = [
+            {
+                id: 1,
+                name: "Brownie",
+                author: "Péricles Rossetti",
+                image: "🍫",
+                ingredients: [
+                    "4 ovos",
+                    "1 xícara de açúcar",
+                    "1 xícara de farinha de trigo",
+                    "2 xícaras de cacau em pó",
+                    "Aproximadamente 75g de manteiga (em temperatura ambiente ou derretida, mas não quente)",
+                    "1 barra de chocolate (opcional; chocolate amargo funciona bem)"
+                ],
+                instructions: [
+                    "Bata os ovos e o açúcar juntos até que a mistura fique lisa e uniforme.",
+                    "Incorpore a manteiga e misture bem (se usar manteiga derretida, certifique-se de que não esteja quente para não cozinhar os ovos).",
+                    "Adicione o cacau em pó até ficar completamente incorporado.",
+                    "Adicione a farinha e misture novamente até incorporar.",
+                    "Se estiver usando a barra de chocolate, pique-a e dobre uma parte na massa, reservando o restante para polvilhar por cima.",
+                    "Despeje a massa em uma forma untada e asse em forno pré-aquecido a 180°C por cerca de 30 minutos.",
+                    "Quando o tempo de cozimento estiver completo, teste com um palito para garantir que o bolo esteja totalmente assado."
+                ],
+                prepTime: "15 min",
+                cookTime: "30 min",
+                servings: "8 porções"
+            },
+            {
+                id: 2,
+                name: "Palha Italiana",
+                author: "Péricles Rossetti",
+                image: "🍪",
+                ingredients: [
+                    "1 lata de leite condensado",
+                    "2 colheres de sopa de manteiga",
+                    "2 colheres de sopa de cacau em pó (ou achocolatado)",
+                    "1 pacote de biscoito Maria (aproximadamente 200g)",
+                    "Leite em pó para polvilhar"
+                ],
+                instructions: [
+                    "Quebre os biscoitos em pedaços pequenos, evitando farelos, e reserve.",
+                    "Prepare o brigadeiro: Em uma panela, misture o leite condensado, a manteiga e o cacau em pó. Cozinhe em fogo baixo, mexendo continuamente, até que a mistura engrosse e comece a desgrudar do fundo da panela.",
+                    "Ainda com o brigadeiro morno, incorpore os biscoitos, garantindo que fiquem bem cobertos.",
+                    "Despeje a mistura em uma assadeira untada ou forrada com papel manteiga, espalhando uniformemente.",
+                    "Deixe esfriar completamente antes de cortar em quadrados ou retângulos.",
+                    "Polvilhe com leite em pó antes de servir."
+                ],
+                prepTime: "20 min",
+                cookTime: "15 min",
+                servings: "12 porções"
+            },
+            {
+                id: 3,
+                name: "Pipoca Doce",
+                author: "Péricles Rossetti",
+                image: "🍿",
+                ingredients: [
+                    "1/2 xícara de milho para pipoca",
+                    "3 colheres de sopa de óleo",
+                    "1 lata de leite condensado",
+                    "2 colheres de sopa de manteiga",
+                    "1 xícara de leite em pó Ninho",
+                    "1 pitada de sal"
+                ],
+                instructions: [
+                    "Em uma panela grande com tampa, aqueça o óleo em fogo médio-alto.",
+                    "Adicione o milho para pipoca, tampe a panela e aguarde estourar. Balance a panela ocasionalmente para não queimar.",
+                    "Quando parar de estourar, retire do fogo e transfira a pipoca para uma tigela grande, removendo os grãos que não estouraram.",
+                    "Na mesma panela, adicione o leite condensado, a manteiga e uma pitada de sal. Cozinhe em fogo baixo, mexendo sempre.",
+                    "Quando a mistura começar a engrossar e desgrudar do fundo da panela (cerca de 8-10 minutos), adicione metade do leite em pó Ninho e misture bem.",
+                    "Despeje a calda quente sobre a pipoca e misture rapidamente com uma colher de pau até que toda a pipoca esteja coberta.",
+                    "Polvilhe o restante do leite em pó Ninho por cima e misture delicadamente.",
+                    "Deixe esfriar completamente antes de servir. A pipoca ficará crocante conforme esfria."
+                ],
+                prepTime: "10 min",
+                cookTime: "15 min",
+                servings: "6 porções"
+            },
+            {
+                id: 4,
+                name: "Miojo Cremoso",
+                author: "Péricles Rossetti",
+                image: "🍜",
+                ingredients: [
+                    "1 pacote de miojo (sabor de sua preferência)",
+                    "200 ml de água",
+                    "2 colheres de sopa de creme de leite (pode ser de caixinha)",
+                    "1 colher de sopa de requeijão cremoso (opcional, mas deixa mais cremoso)",
+                    "Queijo ralado a gosto (opcional)"
+                ],
+                instructions: [
+                    "Coloque a água numa panela e leve ao fogo.",
+                    "Quando ferver, adicione o macarrão e cozinhe por 2 a 3 minutos (até amolecer).",
+                    "Quando o macarrão estiver quase no ponto, adicione o tempero do pacote, o creme de leite e o requeijão.",
+                    "Mexa bem, mantendo no fogo baixo para não talhar o creme de leite.",
+                    "Misture até o molho encorpar e ficar cremoso.",
+                    "Desligue o fogo e, se quiser, adicione queijo ralado.",
+                    "Coloque no prato e sirva ainda quente."
+                ],
+                prepTime: "2 min",
+                cookTime: "6 min",
+                servings: "1 porção"
+            },
+            {
+                id: 5,
+                name: "Strogonoff de Frango",
+                author: "Péricles Rossetti",
+                image: "🍗",
+                ingredients: [
+                    "500g de peito de frango cortado em cubos",
+                    "1 cebola pequena picada",
+                    "2 dentes de alho picados",
+                    "2 colheres de sopa de óleo ou manteiga",
+                    "Sal a gosto",
+                    "1 colher de sopa de ketchup",
+                    "1 colher de sopa de mostarda",
+                    "1 caixinha (200g) de creme de leite"
+                ],
+                instructions: [
+                    "Em uma panela, aqueça o óleo ou manteiga e refogue a cebola e o alho até dourar.",
+                    "Acrescente o frango, tempere com sal, e frite até ficar bem cozido e levemente dourado.",
+                    "Adicione o ketchup e a mostarda, misturando bem.",
+                    "Desligue o fogo, acrescente o creme de leite e mexa até ficar homogêneo (não deixar ferver para não talhar).",
+                    "Sirva quente, acompanhado de arroz branco e batata palha."
+                ],
+                prepTime: "10 min",
+                cookTime: "15 min",
+                servings: "4 porções"
+            }
+        ];
+
+        // Fuzzy search function
+        function fuzzySearch(query, text) {
+            query = query.toLowerCase().trim();
+            text = text.toLowerCase();
+            
+            if (text.includes(query)) return true;
+            
+            // Remove accents for better matching
+            const removeAccents = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            query = removeAccents(query);
+            text = removeAccents(text);
+            
+            if (text.includes(query)) return true;
+            
+            // Fuzzy matching for typos
+            let queryIndex = 0;
+            let textIndex = 0;
+            let matches = 0;
+            
+            while (queryIndex < query.length && textIndex < text.length) {
+                if (query[queryIndex] === text[textIndex]) {
+                    matches++;
+                    queryIndex++;
+                }
+                textIndex++;
+            }
+            
+            // Allow for some typos (at least 70% match)
+            return matches / query.length >= 0.7;
+        }
+
+        // Render recipes
+        function renderRecipes(recipesToShow = recipes) {
+            const container = document.getElementById('recipesContainer');
+            const noResults = document.getElementById('noResults');
+            
+            if (recipesToShow.length === 0) {
+                container.innerHTML = '';
+                noResults.classList.remove('hidden');
+                return;
+            }
+            
+            noResults.classList.add('hidden');
+            
+            // Sort recipes alphabetically
+            recipesToShow.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+            
+            container.innerHTML = recipesToShow.map(recipe => `
+                <div class="recipe-card bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer" onclick="openModal(${recipe.id})">
+                    <div class="h-48 bg-gradient-to-br from-orange-200 to-red-200 flex items-center justify-center">
+                        <div class="text-6xl">${recipe.image}</div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">${recipe.name}</h3>
+                        <p class="text-gray-600 text-sm mb-3">por ${recipe.author}</p>
+                        <div class="flex justify-between text-sm text-gray-500">
+                            <span>⏱️ ${recipe.prepTime + ' + ' + recipe.cookTime}</span>
+                            <span>👥 ${recipe.servings}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Open modal
+        function openModal(recipeId) {
+            const recipe = recipes.find(r => r.id === recipeId);
+            if (!recipe) return;
+            
+            const modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = `
+                <div class="relative">
+                    <button onclick="closeModal()" class="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors">
+                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                    
+                    <div class="h-64 bg-gradient-to-br from-orange-200 to-red-200 flex items-center justify-center">
+                        <div class="text-8xl">${recipe.image}</div>
+                    </div>
+                    
+                    <div class="p-8">
+                        <h2 class="text-3xl font-bold text-gray-800 mb-2">${recipe.name}</h2>
+                        <p class="text-gray-600 mb-6">por ${recipe.author}</p>
+                        
+                        <div class="flex gap-6 mb-8 text-sm">
+                            <div class="flex items-center gap-2">
+                                <span>⏱️</span>
+                                <span>Preparo: ${recipe.prepTime}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span>🔥</span>
+                                <span>Cozimento: ${recipe.cookTime}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span>👥</span>
+                                <span>${recipe.servings}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">🛒 Ingredientes</h3>
+                            <ul class="space-y-2">
+                                ${recipe.ingredients.map(ingredient => `
+                                    <li class="flex items-start gap-3">
+                                        <span class="text-orange-500 mt-1">•</span>
+                                        <span class="text-gray-700">${ingredient}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">👩‍🍳 Modo de Preparo</h3>
+                            <ol class="space-y-4">
+                                ${recipe.instructions.map((instruction, index) => `
+                                    <li class="flex gap-4">
+                                        <span class="flex-shrink-0 w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">
+                                            ${index + 1}
+                                        </span>
+                                        <span class="text-gray-700 pt-1">${instruction}</span>
+                                    </li>
+                                `).join('')}
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('modalOverlay').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+            
+            if (query === '') {
+                renderRecipes();
+                return;
+            }
+            
+            const filteredRecipes = recipes.filter(recipe => {
+                return fuzzySearch(query, recipe.name) || 
+                       recipe.ingredients.some(ingredient => fuzzySearch(query, ingredient)) ||
+                       fuzzySearch(query, recipe.author);
+            });
+            
+            renderRecipes(filteredRecipes);
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('modalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // Initial render
+        renderRecipes();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'972a8ee9f456a67d',t:'MTc1NTc4Mzc5NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
