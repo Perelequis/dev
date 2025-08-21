@@ -47,11 +47,18 @@
         </div>
         
         <!-- Footer -->
-        <footer class="text-gray-600 text-center py-4 mt-8">
-            <p class="text-sm cursor-pointer hover:text-indigo-600 transition-colors" onclick="window.open('https://instagram.com/perelequis', '_blank')">
-                © <span id="currentYear"></span> Perelequis - Todos os direitos reservados
-            </p>
-        </footer>
+       <footer class="text-gray-600 text-center py-4 mt-8">
+    <p class="text-sm cursor-pointer hover:text-indigo-600 transition-colors" 
+       onclick="window.open('https://instagram.com/perelequis', '_blank')">
+        © <span id="currentYear"></span> Perelequis - Todos os direitos reservados
+    </p>
+</footer>
+
+<script>
+    // Pega o ano atual do sistema e insere no span
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+</script>
+
     </div>
 
     <script>
