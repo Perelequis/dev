@@ -3,312 +3,452 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendário Interativo</title>
+    <title>Conversor de Imagem para PDF</title>
     <link rel="icon" type="image/x-icon" href="ico.png">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        footer {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            color: rgba(255, 255, 255, 0.8);
+            text-align: center;
+            padding: 20px 30px;
+            margin-top: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        footer:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        footer p {
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        footer p:hover {
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px 20px;
+            margin-bottom: 30px;
+            background: #f8f9ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8ebff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            color: #333;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .preview-area {
+            display: none;
+            margin-bottom: 30px;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+
+        .image-info {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .format-options {
+            display: none;
+            margin-bottom: 30px;
+        }
+
+        .format-title {
+            color: #333;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .format-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .format-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+
+        .format-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .format-btn:active {
+            transform: translateY(0);
+        }
+
+        .reset-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .reset-btn:hover {
+            background: #c0392b;
+            transform: translateY(-1px);
+        }
+
+        .loading {
+            display: none;
+            color: #667eea;
+            font-size: 1.1em;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .format-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .format-btn {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen p-4">
-    <div class="max-w-6xl mx-auto">
-        <!-- Header -->
-        <div class="text-center mb-4">
-            <div class="h-8 mb-4"></div>
-            <div class="flex items-center justify-center gap-4 mb-4">
-                <button onclick="previousMonth()" class="bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg shadow-md transition-all duration-200 font-medium">
-                    ← Anterior
-                </button>
-                <h2 id="monthYear" class="text-2xl font-semibold text-gray-700 min-w-48 text-center"></h2>
-                <button onclick="nextMonth()" class="bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg shadow-md transition-all duration-200 font-medium">
-                    Próximo →
-                </button>
-            </div>
-        </div>
-
-        <!-- Calendar Grid -->
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-            <!-- Days of week header -->
-            <div class="grid grid-cols-7 bg-gradient-to-r from-indigo-600 to-blue-600">
-                <div class="p-4 text-center font-semibold text-white">Dom</div>
-                <div class="p-4 text-center font-semibold text-white">Seg</div>
-                <div class="p-4 text-center font-semibold text-white">Ter</div>
-                <div class="p-4 text-center font-semibold text-white">Qua</div>
-                <div class="p-4 text-center font-semibold text-white">Qui</div>
-                <div class="p-4 text-center font-semibold text-white">Sex</div>
-                <div class="p-4 text-center font-semibold text-white">Sáb</div>
-            </div>
-            
-            <!-- Calendar days -->
-            <div id="calendarGrid" class="grid grid-cols-7 gap-0">
-                <!-- Days will be generated by JavaScript -->
-            </div>
+<body>
+    <div class="container">
+        <h1>📄 Imagem para PDF</h1>
+        <p class="subtitle">Converta suas imagens em PDF de forma rápida e simples</p>
+        
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-icon">📸</div>
+            <div class="upload-text">Clique aqui ou arraste sua imagem</div>
+            <div class="upload-hint">Suporta JPG, PNG, GIF, BMP, WebP</div>
         </div>
         
-        <!-- Footer -->
-       <footer class="text-gray-600 text-center py-4 mt-8">
-    <p class="text-sm cursor-pointer hover:text-indigo-600 transition-colors" 
-       onclick="window.open('https://instagram.com/perelequis', '_blank')">
-        © <span id="currentYear"></span> Perelequis - Todos os direitos reservados
-    </p>
-</footer>
-
-<script>
-    // Pega o ano atual do sistema e insere no span
-    document.getElementById('currentYear').textContent = new Date().getFullYear();
-</script>
-
+        <input type="file" id="fileInput" accept="image/*">
+        
+        <div class="preview-area" id="previewArea">
+            <img class="preview-image" id="previewImage" alt="Preview da imagem">
+            <div class="image-info" id="imageInfo"></div>
+        </div>
+        
+        <div class="format-options" id="formatOptions">
+            <div class="format-title">Escolha o formato do PDF:</div>
+            <div class="format-buttons">
+                <button class="format-btn" onclick="convertToPDF('original')">
+                    📐 Tamanho Original
+                </button>
+                <button class="format-btn" onclick="convertToPDF('a4')">
+                    📋 Formato A4
+                </button>
+            </div>
+            <button class="reset-btn" onclick="resetConverter()">
+                🔄 Nova Imagem
+            </button>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            Gerando PDF...
+        </div>
     </div>
 
+    <footer>
+        <p onclick="window.open('https://instagram.com/perelequis', '_blank')">
+            © <span id="currentYear"></span> Perelequis - Todos os direitos reservados
+        </p>
+    </footer>
+
     <script>
-        let currentDate = new Date();
-        let eventsCache = {}; // Cache para armazenar eventos carregados
+        let selectedImage = null;
+        let imageData = null;
 
-        const monthNames = [
-            'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-        ];
+        // Elementos do DOM
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.querySelector('.upload-area');
+        const previewArea = document.getElementById('previewArea');
+        const previewImage = document.getElementById('previewImage');
+        const imageInfo = document.getElementById('imageInfo');
+        const formatOptions = document.getElementById('formatOptions');
+        const loading = document.getElementById('loading');
 
-        // ========================================
-        // SISTEMA DE EVENTOS EXTERNOS
-        // ========================================
-        // 
-        // COMO CRIAR OS ARQUIVOS DE EVENTOS:
-        // 
-        // 1. Crie arquivos separados para cada ano (de 2000 a 2050):
-        //    - eventos2000.js, eventos2001.js, eventos2002.js...
-        //    - eventos2024.js, eventos2025.js, eventos2026.js...
-        //    - eventos2048.js, eventos2049.js, eventos2050.js
-        //
-        // 2. Cada arquivo deve conter APENAS o objeto JavaScript com os eventos:
-        //
-        // EXEMPLO COMPLETO do conteúdo do arquivo eventos2024.js:
-        // {
-        //     // ===== JANEIRO 2024 =====
-        //     '2024-0-1': { title: 'Ano Novo', link: 'https://exemplo.com' },
-        //     '2024-0-6': { title: 'Dia de Reis', link: '' },
-        //     
-        //     // EXEMPLO: TRÊS EVENTOS NO MESMO DIA (15 de Janeiro)
-        //     '2024-0-15': [
-        //         { title: 'Reunião 9h', link: 'https://meet.google.com' },
-        //         { title: 'Almoço 12h', link: 'https://restaurante.com' },
-        //         { title: 'Apresentação 15h', link: 'https://slides.com' }
-        //     ],
-        //     
-        //     // ===== FEVEREIRO 2024 =====
-        //     '2024-1-14': { title: 'Dia dos Namorados', link: '' },
-        //     
-        //     // EXEMPLO: DOIS EVENTOS NO MESMO DIA (20 de Fevereiro)
-        //     '2024-1-20': [
-        //         { title: 'Dentista 14h', link: '' },
-        //         { title: 'Academia 18h', link: 'https://academia.com' }
-        //     ],
-        //     
-        //     // ===== MARÇO 2024 =====
-        //     '2024-2-8': { title: 'Dia da Mulher', link: 'https://diadamulher.com' },
-        //     
-        //     // EXEMPLO: TRÊS EVENTOS COMPLETOS (25 de Março)
-        //     '2024-2-25': [
-        //         { title: 'Café da manhã', link: 'https://cafe.com' },
-        //         { title: 'Trabalho', link: '' },
-        //         { title: 'Cinema 20h', link: 'https://cinema.com' }
-        //     ]
-        // }
-        //
-        // FORMATO DOS EVENTOS:
-        // - Chave: 'ANO-MÊS-DIA' (mês começa em 0: Janeiro=0, Fevereiro=1, Março=2, etc.)
-        // - Um evento: { title: 'Nome do Evento', link: 'URL opcional' }
-        // - Múltiplos eventos: array com até 3 eventos no mesmo formato
-        // - Link vazio: use '' (string vazia) se não tiver link
-        //
-        // CORES DOS EVENTOS:
-        // - Hoje: sempre amarelo
-        // - Futuro: amarelo
-        // - Passado sem link: vermelho
-        // - Passado com link: azul
-        // ========================================
-
-        async function loadEventsForYear(year) {
-            if (eventsCache[year]) {
-                return eventsCache[year];
-            }
-
-            try {
-                const response = await fetch(`eventos${year}.js`);
-                if (response.ok) {
-                    const eventsText = await response.text();
-                    // Avalia o conteúdo do arquivo como JavaScript
-                    const events = eval(`(${eventsText})`);
-                    eventsCache[year] = events;
-                    return events;
-                }
-            } catch (error) {
-                console.log(`Arquivo eventos${year}.js não encontrado ou erro ao carregar:`, error);
-            }
-            
-            // Retorna objeto vazio se não conseguir carregar
-            eventsCache[year] = {};
-            return {};
-        }
-
-        async function generateCalendar() {
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-            
-            // Update month/year display
-            document.getElementById('monthYear').textContent = `${monthNames[month]} ${year}`;
-            
-            // Carrega eventos do ano atual
-            const events = await loadEventsForYear(year);
-            
-            // Get first day of month and number of days
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            
-            const calendarGrid = document.getElementById('calendarGrid');
-            calendarGrid.innerHTML = '';
-            
-            // Add empty cells for days before month starts
-            for (let i = 0; i < firstDay; i++) {
-                const emptyDay = document.createElement('div');
-                emptyDay.className = 'h-32 bg-gray-50 border border-gray-200';
-                calendarGrid.appendChild(emptyDay);
-            }
-            
-            // Add days of the month
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dayElement = document.createElement('div');
-                dayElement.className = 'h-32 bg-white border border-gray-200 p-2 flex flex-col';
-                
-                const dayKey = `${year}-${month}-${day}`;
-                const dayEvents = events[dayKey];
-                
-                let eventsHtml = '';
-                
-                if (dayEvents) {
-                    const today = new Date();
-                    const eventDate = new Date(year, month, day);
-                    const isToday = eventDate.toDateString() === today.toDateString();
-                    const isPast = eventDate < today && !isToday;
-                    const isFuture = eventDate > today;
-                    
-                    // Se é um array de eventos (múltiplos eventos)
-                    if (Array.isArray(dayEvents)) {
-                        dayEvents.slice(0, 3).forEach(event => {
-                            if (event.title) {
-                                let colorClasses = '';
-                                let hoverClasses = '';
-                                let clickAction = '';
-                                let titleText = '';
-                                
-                                // Lógica de cores baseada nas regras
-                                if (isToday) {
-                                    // Hoje: sempre amarelo
-                                    colorClasses = 'bg-yellow-100 text-yellow-800';
-                                    hoverClasses = 'hover:bg-yellow-200';
-                                } else if (isFuture || !isPast) {
-                                    // Futuro: amarelo
-                                    colorClasses = 'bg-yellow-100 text-yellow-800';
-                                    hoverClasses = 'hover:bg-yellow-200';
-                                } else if (isPast && !event.link) {
-                                    // Passado sem link: vermelho
-                                    colorClasses = 'bg-red-100 text-red-800';
-                                    hoverClasses = 'hover:bg-red-200';
-                                } else {
-                                    // Outros casos: azul padrão
-                                    colorClasses = 'bg-indigo-100 text-indigo-800';
-                                    hoverClasses = 'hover:bg-indigo-200';
-                                }
-                                
-                                if (event.link) {
-                                    clickAction = `onclick="openLink('${event.link}')"`;
-                                    titleText = `title="Clique para abrir: ${event.link}"`;
-                                    colorClasses += ' cursor-pointer';
-                                }
-                                
-                                eventsHtml += `
-                                    <div class="${colorClasses} px-2 py-1 rounded text-xs font-medium ${hoverClasses} transition-colors duration-200 mb-1" 
-                                         ${clickAction} ${titleText}>
-                                        ${event.title}
-                                    </div>
-                                `;
-                            }
-                        });
-                    }
-                    // Se é um evento único (formato antigo)
-                    else if (dayEvents.title) {
-                        let colorClasses = '';
-                        let hoverClasses = '';
-                        let clickAction = '';
-                        let titleText = '';
-                        
-                        // Lógica de cores baseada nas regras
-                        if (isToday) {
-                            // Hoje: sempre amarelo
-                            colorClasses = 'bg-yellow-100 text-yellow-800';
-                            hoverClasses = 'hover:bg-yellow-200';
-                        } else if (isFuture || !isPast) {
-                            // Futuro: amarelo
-                            colorClasses = 'bg-yellow-100 text-yellow-800';
-                            hoverClasses = 'hover:bg-yellow-200';
-                        } else if (isPast && !dayEvents.link) {
-                            // Passado sem link: vermelho
-                            colorClasses = 'bg-red-100 text-red-800';
-                            hoverClasses = 'hover:bg-red-200';
-                        } else {
-                            // Outros casos: azul padrão
-                            colorClasses = 'bg-indigo-100 text-indigo-800';
-                            hoverClasses = 'hover:bg-indigo-200';
-                        }
-                        
-                        if (dayEvents.link) {
-                            clickAction = `onclick="openLink('${dayEvents.link}')"`;
-                            titleText = `title="Clique para abrir: ${dayEvents.link}"`;
-                            colorClasses += ' cursor-pointer';
-                        }
-                        
-                        eventsHtml = `
-                            <div class="${colorClasses} px-2 py-1 rounded text-xs font-medium ${hoverClasses} transition-colors duration-200" 
-                                 ${clickAction} ${titleText}>
-                                ${dayEvents.title}
-                            </div>
-                        `;
-                    }
-                }
-                
-                dayElement.innerHTML = `
-                    <div class="font-semibold text-gray-700 mb-2">${day}</div>
-                    <div class="flex-1 overflow-hidden">
-                        ${eventsHtml}
-                    </div>
-                `;
-                
-                calendarGrid.appendChild(dayElement);
-            }
-        }
-
-        function openLink(link) {
-            if (link) {
-                window.open(link, '_blank');
-            }
-        }
-
-        function previousMonth() {
-            currentDate.setMonth(currentDate.getMonth() - 1);
-            generateCalendar();
-        }
-
-        function nextMonth() {
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            generateCalendar();
-        }
-
-        // Initialize calendar
-        generateCalendar();
+        // Event listeners
+        fileInput.addEventListener('change', handleFileSelect);
         
-        // Set current year in footer
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            // Verificar se é uma imagem
+            if (!file.type.startsWith('image/')) {
+                alert('Por favor, selecione apenas arquivos de imagem.');
+                return;
+            }
+
+            selectedImage = file;
+            
+            // Criar preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imageData = e.target.result;
+                previewImage.src = imageData;
+                
+                // Mostrar informações da imagem
+                const img = new Image();
+                img.onload = function() {
+                    const sizeKB = (file.size / 1024).toFixed(1);
+                    imageInfo.innerHTML = `
+                        <strong>${file.name}</strong><br>
+                        Dimensões: ${img.width} × ${img.height} pixels<br>
+                        Tamanho: ${sizeKB} KB
+                    `;
+                };
+                img.src = imageData;
+                
+                // Mostrar preview e opções
+                previewArea.style.display = 'block';
+                formatOptions.style.display = 'block';
+                uploadArea.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function convertToPDF(format) {
+            if (!imageData) return;
+            
+            loading.style.display = 'block';
+            
+            // Pequeno delay para mostrar o loading
+            setTimeout(() => {
+                try {
+                    const { jsPDF } = window.jspdf;
+                    
+                    // Criar uma imagem para obter dimensões
+                    const img = new Image();
+                    img.onload = function() {
+                        let pdf;
+                        let imgWidth, imgHeight;
+                        
+                        if (format === 'a4') {
+                            // Formato A4 (210 × 297 mm)
+                            pdf = new jsPDF('p', 'mm', 'a4');
+                            const pageWidth = 210;
+                            const pageHeight = 297;
+                            const margin = 10;
+                            
+                            // Calcular dimensões mantendo proporção
+                            const maxWidth = pageWidth - (margin * 2);
+                            const maxHeight = pageHeight - (margin * 2);
+                            
+                            const ratio = Math.min(maxWidth / img.width, maxHeight / img.height);
+                            imgWidth = img.width * ratio;
+                            imgHeight = img.height * ratio;
+                            
+                            // Centralizar na página
+                            const x = (pageWidth - imgWidth) / 2;
+                            const y = (pageHeight - imgHeight) / 2;
+                            
+                            pdf.addImage(imageData, 'JPEG', x, y, imgWidth, imgHeight);
+                        } else {
+                            // Tamanho original (converter pixels para mm)
+                            const pixelToMm = 0.264583;
+                            imgWidth = img.width * pixelToMm;
+                            imgHeight = img.height * pixelToMm;
+                            
+                            pdf = new jsPDF({
+                                orientation: imgWidth > imgHeight ? 'l' : 'p',
+                                unit: 'mm',
+                                format: [imgWidth, imgHeight]
+                            });
+                            
+                            pdf.addImage(imageData, 'JPEG', 0, 0, imgWidth, imgHeight);
+                        }
+                        
+                        // Gerar nome do arquivo
+                        const fileName = selectedImage.name.replace(/\.[^/.]+$/, '') + '_' + format + '.pdf';
+                        
+                        // Download do PDF
+                        pdf.save(fileName);
+                        
+                        loading.style.display = 'none';
+                    };
+                    img.src = imageData;
+                    
+                } catch (error) {
+                    console.error('Erro ao gerar PDF:', error);
+                    alert('Erro ao gerar o PDF. Tente novamente.');
+                    loading.style.display = 'none';
+                }
+            }, 500);
+        }
+
+        function resetConverter() {
+            selectedImage = null;
+            imageData = null;
+            fileInput.value = '';
+            previewArea.style.display = 'none';
+            formatOptions.style.display = 'none';
+            uploadArea.style.display = 'block';
+            loading.style.display = 'none';
+        }
+
+        // Pega o ano atual do sistema e insere no span
         document.getElementById('currentYear').textContent = new Date().getFullYear();
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'972b458b93109a86',t:'MTc1NTc5MTI3NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'972ba8127153e026',t:'MTc1NTc5NTMxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
