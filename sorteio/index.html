@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorteador de Números</title>
+    <link rel="icon" type="image/png" href="dado.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes numberFade {
+            0% { opacity: 0; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.1); }
+            100% { opacity: 0; transform: scale(0.8); }
+        }
+        
+        @keyframes finalReveal {
+            0% { opacity: 0; transform: scale(0.5) rotate(-10deg); }
+            50% { transform: scale(1.2) rotate(5deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .number-fade {
+            animation: numberFade 0.3s ease-in-out;
+        }
+        
+        .final-reveal {
+            animation: finalReveal 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .glass-effect {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .overlay {
+            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.8);
+        }
+        
+        .card-shadow {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+    <!-- Página Principal -->
+    <div id="mainPage" class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="text-center py-12">
+            <h1 class="text-5xl md:text-6xl font-bold text-white mb-4 fade-in-up">
+                🎲 Sorteador de Números
+            </h1>
+            <p class="text-xl text-blue-200 fade-in-up">
+                Defina o intervalo e gere números aleatórios
+            </p>
+        </header>
+        
+        <!-- Main Content -->
+        <main class="flex-1 flex items-center justify-center px-4">
+            <div class="bg-white/10 backdrop-blur-lg rounded-3xl p-8 md:p-12 w-full max-w-2xl card-shadow border border-white/20">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-semibold text-white mb-2">Configure seu Sorteio</h2>
+                    <p class="text-blue-200">Escolha o intervalo dos números</p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="space-y-3">
+                        <label class="block text-sm font-medium text-blue-200">Número Mínimo</label>
+                        <input type="number" id="minNumber" value="1" 
+                               class="w-full px-6 py-4 bg-white/20 border border-white/30 rounded-2xl text-white placeholder-blue-200 focus:bg-white/30 focus:border-blue-400 focus:outline-none text-center text-xl font-semibold backdrop-blur-sm">
+                    </div>
+                    <div class="space-y-3">
+                        <label class="block text-sm font-medium text-blue-200">Número Máximo</label>
+                        <input type="number" id="maxNumber" value="100" 
+                               class="w-full px-6 py-4 bg-white/20 border border-white/30 rounded-2xl text-white placeholder-blue-200 focus:bg-white/30 focus:border-blue-400 focus:outline-none text-center text-xl font-semibold backdrop-blur-sm">
+                    </div>
+                </div>
+                
+                <button id="startButton" 
+                        class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-5 px-8 rounded-2xl hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-300 shadow-2xl text-xl">
+                    Iniciar Sorteio
+                </button>
+                
+                <div class="mt-6 text-center text-blue-200/80">
+                    Pronto para gerar um número aleatório?
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Página de Sobreposição -->
+    <div id="overlayPage" class="fixed inset-0 overlay hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white/10 backdrop-blur-lg rounded-3xl p-8 md:p-12 w-full max-w-3xl card-shadow border border-white/20 fade-in-up">
+            <div class="text-center mb-8">
+                <h2 class="text-4xl font-bold text-white mb-3">Sorteando</h2>
+                <p id="rangeDisplay" class="text-xl text-blue-200"></p>
+            </div>
+            
+            <!-- Display do número -->
+            <div class="mb-12">
+                <div class="bg-white/20 backdrop-blur-sm rounded-3xl p-12 mb-6 border border-white/30">
+                    <div id="numberDisplay" class="text-8xl md:text-9xl font-bold text-white text-center min-h-[120px] flex items-center justify-center">
+                        ?
+                    </div>
+                </div>
+                
+                <div id="animationStatus" class="text-xl text-center text-blue-200 mb-6">
+                    Clique em "Sortear" para revelar o número!
+                </div>
+            </div>
+            
+            <!-- Botões -->
+            <div class="grid gap-4">
+                <button id="drawButton" 
+                        class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-5 px-8 rounded-2xl hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all duration-300 shadow-2xl text-xl pulse-animation">
+                    Sortear Número
+                </button>
+                
+                <button id="newDrawButton" 
+                        class="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold py-4 px-6 rounded-2xl hover:from-orange-600 hover:to-red-600 transform hover:scale-105 transition-all duration-300 shadow-xl hidden">
+                    Sortear Novamente
+                </button>
+                
+                <button id="backButton" 
+                        class="w-full bg-white/20 backdrop-blur-sm text-white font-semibold py-4 px-6 rounded-2xl hover:bg-white/30 transform hover:scale-105 transition-all duration-300 border border-white/30">
+                    ← Voltar ao Início
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="text-blue-200 text-center py-4 mt-8">
+        <p class="text-sm cursor-pointer hover:text-white transition-colors" 
+           onclick="window.open('https://instagram.com/perelequis', '_blank')">
+            © <span id="currentYear"></span> Perelequis - Todos os direitos reservados
+        </p>
+    </footer>
+
+    <script>
+        // Atualizar ano automaticamente
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        let minNum = 1;
+        let maxNum = 100;
+        let isAnimating = false;
+        let animationInterval;
+        let currentNumber = null;
+        let usedNumbers = [];
+
+        // Elementos
+        const mainPage = document.getElementById('mainPage');
+        const overlayPage = document.getElementById('overlayPage');
+        const minNumberInput = document.getElementById('minNumber');
+        const maxNumberInput = document.getElementById('maxNumber');
+        const startButton = document.getElementById('startButton');
+        const drawButton = document.getElementById('drawButton');
+        const newDrawButton = document.getElementById('newDrawButton');
+        const backButton = document.getElementById('backButton');
+        const numberDisplay = document.getElementById('numberDisplay');
+        const rangeDisplay = document.getElementById('rangeDisplay');
+        const animationStatus = document.getElementById('animationStatus');
+
+        // Função para gerar número aleatório
+        function getRandomNumber(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        // Função para gerar número único (não repetido)
+        function getUniqueRandomNumber(min, max) {
+            const totalNumbers = max - min + 1;
+            
+            // Se todos os números já foram sorteados, reinicia a lista
+            if (usedNumbers.length >= totalNumbers) {
+                usedNumbers = [];
+            }
+            
+            let randomNum;
+            do {
+                randomNum = getRandomNumber(min, max);
+            } while (usedNumbers.includes(randomNum));
+            
+            usedNumbers.push(randomNum);
+            return randomNum;
+        }
+
+        // Função para iniciar animação de números
+        function startNumberAnimation() {
+            isAnimating = true;
+            animationStatus.textContent = 'Sorteando números...';
+            drawButton.textContent = 'Parar e Sortear';
+            drawButton.classList.remove('pulse-animation');
+            
+            animationInterval = setInterval(() => {
+                const randomNum = getRandomNumber(minNum, maxNum);
+                numberDisplay.classList.remove('number-fade');
+                numberDisplay.textContent = randomNum;
+                
+                // Força o reflow para reiniciar a animação
+                void numberDisplay.offsetWidth;
+                numberDisplay.classList.add('number-fade');
+            }, 150);
+        }
+
+        // Função para parar animação e mostrar resultado
+        function stopAnimationAndShowResult() {
+            isAnimating = false;
+            clearInterval(animationInterval);
+            numberDisplay.classList.remove('number-fade');
+            
+            // Gera o número final único
+            currentNumber = getUniqueRandomNumber(minNum, maxNum);
+            
+            // Animação de revelação final
+            numberDisplay.style.opacity = '0';
+            setTimeout(() => {
+                numberDisplay.textContent = currentNumber;
+                numberDisplay.classList.add('final-reveal');
+                numberDisplay.style.opacity = '1';
+                
+                setTimeout(() => {
+                    numberDisplay.classList.remove('final-reveal');
+                }, 800);
+            }, 200);
+            
+            animationStatus.innerHTML = `🎉 <strong>Número sorteado: ${currentNumber}</strong>`;
+            drawButton.classList.add('hidden');
+            newDrawButton.classList.remove('hidden');
+        }
+
+        // Função para resetar para novo sorteio
+        function resetForNewDraw() {
+            numberDisplay.classList.remove('final-reveal', 'number-fade');
+            numberDisplay.textContent = '?';
+            numberDisplay.style.opacity = '1';
+            animationStatus.textContent = 'Clique em "Sortear" para revelar o número!';
+            drawButton.classList.remove('hidden');
+            drawButton.classList.add('pulse-animation');
+            drawButton.textContent = 'Sortear Número';
+            newDrawButton.classList.add('hidden');
+            currentNumber = null;
+        }
+
+        // Event Listeners
+        startButton.addEventListener('click', () => {
+            minNum = parseInt(minNumberInput.value) || 1;
+            maxNum = parseInt(maxNumberInput.value) || 100;
+            
+            if (minNum >= maxNum) {
+                alert('O número máximo deve ser maior que o mínimo!');
+                return;
+            }
+            
+            // Reseta a lista de números usados ao mudar o intervalo
+            usedNumbers = [];
+            
+            rangeDisplay.textContent = `Intervalo: ${minNum} até ${maxNum}`;
+            overlayPage.classList.remove('hidden');
+            resetForNewDraw();
+        });
+
+        drawButton.addEventListener('click', () => {
+            if (!isAnimating) {
+                startNumberAnimation();
+            } else {
+                stopAnimationAndShowResult();
+            }
+        });
+
+        newDrawButton.addEventListener('click', () => {
+            resetForNewDraw();
+        });
+
+        backButton.addEventListener('click', () => {
+            overlayPage.classList.add('hidden');
+            if (isAnimating) {
+                clearInterval(animationInterval);
+                isAnimating = false;
+            }
+            resetForNewDraw();
+        });
+
+        // Validação dos inputs
+        minNumberInput.addEventListener('input', () => {
+            const value = parseInt(minNumberInput.value);
+            if (value >= parseInt(maxNumberInput.value)) {
+                maxNumberInput.value = value + 1;
+            }
+        });
+
+        maxNumberInput.addEventListener('input', () => {
+            const value = parseInt(maxNumberInput.value);
+            if (value <= parseInt(minNumberInput.value)) {
+                minNumberInput.value = value - 1;
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'973ffd87c474fe12',t:'MTc1NjAwODUyNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
